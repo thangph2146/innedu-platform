@@ -2,6 +2,7 @@ export const ROLES = {
     SUPER_ADMIN: 'SUPER_ADMIN',
     ADMIN: 'ADMIN',
     ACCOUNTANT: 'ACCOUNTANT',
+    PARTNER: 'PARTNER',
     USER: 'USER',
 } as const;
 
@@ -77,6 +78,13 @@ export const ROLE_PERMISSIONS: Record<RoleType, PermissionType[]> = {
         PERMISSIONS.VIEW_FINANCIAL_REPORTS,
         PERMISSIONS.VIEW_PROFILE,
         PERMISSIONS.EDIT_PROFILE,
+    ],
+    
+    PARTNER: [
+        // Financial Access
+        PERMISSIONS.ACCESS_ADMIN_PANEL,
+        PERMISSIONS.VIEW_TRANSACTIONS,
+        PERMISSIONS.VIEW_FINANCIAL_REPORTS,
     ],
     
     USER: [
