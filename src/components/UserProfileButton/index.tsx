@@ -3,6 +3,7 @@
 import { useAuth } from "@/providers/AuthProvider";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function UserProfileButton() {
   const { isAuthenticated, userProfile, logout } = useAuth();
@@ -40,11 +41,17 @@ export default function UserProfileButton() {
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="relative">
-          <img
-            src={userProfile.picture}
+        <div className="relative w-9 h-9">
+          <Image
+            src={userProfile.picture || '/images/default-avatar.png'}
             alt={userProfile.name}
-            className="w-9 h-9 rounded-full border-2 border-white shadow-sm"
+            fill
+            sizes="36px"
+            className="rounded-full border-2 border-white shadow-sm object-cover"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.src = '/images/default-avatar.png';
+            }}
           />
           <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
         </div>
