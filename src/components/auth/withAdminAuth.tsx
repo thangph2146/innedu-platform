@@ -13,6 +13,7 @@ export function withAdminAuth<P extends object>(
     const { canAccessAdminPanel } = usePermissions();
     const router = useRouter();
 
+    
     // Kiểm tra quyền ngay khi component mount
     useEffect(() => {
       if (!isAuthenticated || !canAccessAdminPanel()) {
