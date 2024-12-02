@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Xóa token
     delete axiosInstance.defaults.headers.common['Authorization'];
     localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.USER_PROFILE);
     
     // Clear Redux store
     dispatch(clearUserProfile());
@@ -49,21 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
       if (token && !isAuthenticated) {
-        const loadingToast = toast.loading('Đang khôi phục phiên đăng nhập...');
         try {
-          // Set token cho axios
-          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
           // Lấy thông tin user profile
-          const response = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
-          dispatch(setUserProfile(response.data));
-          
-          toast.success(`Chào mừng ${response.data.name} trở lại! 👋`, {
-            id: loadingToast,
-          });
+          const userProfile = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_PROFILE);
+          if (userProfile) {
+            dispatch(setUserProfile(JSON.parse(userProfile)));
+          }
+       
         } catch (error) {
           toast.error('Phiên đăng nhập đã hết hạn', {
-            id: loadingToast,
             icon: '⚠️',
           });
           

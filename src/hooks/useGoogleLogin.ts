@@ -47,6 +47,7 @@ export const useGoogleLogin = () => {
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           const userProfileResponse = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
+          localStorage.setItem(LOCAL_STORAGE_KEYS.USER_PROFILE, JSON.stringify(userProfileResponse.data));
           dispatch(setUserProfile(userProfileResponse.data));
 
           toast.success(`Xin chào ${userProfileResponse.data.name}! 👋`, {

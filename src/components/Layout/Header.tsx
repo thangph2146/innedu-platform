@@ -32,7 +32,7 @@ export default function Header() {
   return (
     <header 
       className={`
-        sticky top-0 z-50 w-full bg-white/80 backdrop-blur-sm
+        sticky top-0 z-50 w-full bg-white backdrop-blur-sm
         transition-all duration-200
         ${isScrolled ? 'shadow-sm' : 'border-b border-gray-200'}
       `}
@@ -88,7 +88,7 @@ export default function Header() {
               e.stopPropagation();
               setIsMobileMenuOpen(!isMobileMenuOpen);
             }}
-            className="p-2 rounded-lg hover:bg-gray-100/80 text-gray-600 hover:text-gray-900 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100/80 text-gray-600 hover:text-gray-900 transition-colors border-gray-300"
             aria-expanded={isMobileMenuOpen}
             aria-label="Toggle menu"
           >
@@ -105,8 +105,8 @@ export default function Header() {
       {/* Mobile Navigation */}
       <div
         className={`
-          md:hidden bg-white/95 backdrop-blur-sm
-          transition-all duration-300 ease-in-out
+          md:hidden bg-white backdrop-blur-sm
+          transition-all duration-300 ease-in-out border-gray-300
           ${isMobileMenuOpen ? 'max-h-screen border-t border-gray-100' : 'max-h-0 opacity-0 overflow-hidden'}
         `}
         onClick={(e) => e.stopPropagation()}
@@ -121,7 +121,7 @@ export default function Header() {
             >
               {item.label}
               <svg 
-                className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors"
+                className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors border-gray-300"
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
