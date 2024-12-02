@@ -2,13 +2,16 @@
 import GoogleOAuthProviderWrapper from "./GoogleOAuthProvider";
 import { ReactNode } from "react";
 import { ReduxProvider } from "./ReduxProvider";
+import { AuthProvider } from "./AuthProvider";
 
 function Providers({ children }: { children: ReactNode }) {
     return (
         <ReduxProvider>
-            <GoogleOAuthProviderWrapper>
-                {children}
-            </GoogleOAuthProviderWrapper>
+            <AuthProvider>
+                <GoogleOAuthProviderWrapper>
+                    {children}
+                </GoogleOAuthProviderWrapper>
+            </AuthProvider>
         </ReduxProvider>
     )
 }

@@ -7,8 +7,8 @@ import { RolesPermissionLogger } from '@/components/Logger/RolesPermissionLogger
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
   return <Provider store={store}>
-            <UserProfileLogger />
-            <RolesPermissionLogger />
+            {/* <UserProfileLogger /> */}
+            {/* <RolesPermissionLogger /> */}
             {children}
         </Provider>
     ;
