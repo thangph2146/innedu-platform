@@ -155,19 +155,7 @@ export default function UserProfileButton() {
                     <span className="font-medium">Quản trị hệ thống</span>
                   </div>
 
-                  <svg 
-                    className="w-4 h-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                 
                 </button>
               </div>
             </>
