@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, createContext, useContext, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearUserProfile, setUserProfile } from '@/store/slices/userSlice';
 import { clearRolesPermission } from '@/store/slices/rolesSlice';
@@ -21,7 +20,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const dispatch = useDispatch();
   const userProfile = useSelector((state: RootState) => state.user.profile);
   const isAuthenticated = !!userProfile;
