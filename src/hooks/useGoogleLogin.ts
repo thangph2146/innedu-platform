@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserProfile } from '@/store/slices/userSlice';
+import { LOCAL_STORAGE_KEYS } from "@/constants/local_storage";
 
 interface GoogleCredentialResponse {
   credential: string;
@@ -39,8 +40,12 @@ export const useGoogleLogin = () => {
         );
 
         if (result.data.status === 'success') {
-          axiosInstance.defaults.headers.common['Authorization'] = 
-            `Bearer ${result.data.data.token}`;
+          const token = result.data.data.token;
+          
+          // Lưu token vào localStorage
+          localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, token);
+          
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
           const userProfileResponse = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
           dispatch(setUserProfile(userProfileResponse.data));

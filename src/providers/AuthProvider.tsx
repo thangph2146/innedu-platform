@@ -3,23 +3,21 @@
 import { useEffect, createContext, useContext, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearUserProfile } from '@/store/slices/userSlice';
+import { clearUserProfile, setUserProfile } from '@/store/slices/userSlice';
 import { clearRolesPermission } from '@/store/slices/rolesSlice';
 import { RootState } from '@/store';
 import axiosInstance from '@/services/axiosInstance';
 import { UserProfileLogger } from '@/components/Logger/UserProfileLogger';
+import { LOCAL_STORAGE_KEYS } from '@/constants/local_storage';
+import { API_ENDPOINT } from '@/constants/api_endpoints';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userProfile: any | null;
   logout: () => void;
-  checkAuthTimeout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 phút
-const CHECK_INTERVAL = 5 * 60 * 1000; // 5 phút
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -33,88 +31,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Xóa token
     delete axiosInstance.defaults.headers.common['Authorization'];
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
     
     // Clear Redux store
     dispatch(clearUserProfile());
     dispatch(clearRolesPermission());
-    
-    // Chuyển về trang login
-    // router.push('/login');
-  }, [dispatch, router]);
+  }, [dispatch]);
 
-  // Kiểm tra session timeout
-  const checkAuthTimeout = useCallback(() => {
-    if (!userProfile?.last_login_at) return;
+  // Khôi phục trạng thái đăng nhập từ localStorage khi khởi động
+  useEffect(() => {
+    const restoreAuth = async () => {
+      const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+      if (token && !isAuthenticated) {
+        try {
+          // Set token cho axios
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          // Lấy thông tin user profile
+          const response = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
+          dispatch(setUserProfile(response.data));
+          
+          console.log('Khôi phục phiên đăng nhập thành công');
+        } catch (error) {
+          console.error('Lỗi khôi phục phiên đăng nhập:', error);
+          // Nếu token không hợp lệ, xóa token và logout
+          localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+          logout();
+        }
+      }
+    };
 
-    const lastLoginTime = userProfile.last_login_at * 1000;
-    const currentTime = Date.now();
-    
-    console.log('Kiểm tra timeout:', {
-      lastLogin: new Date(lastLoginTime).toLocaleString(),
-      current: new Date(currentTime).toLocaleString(),
-      timeLeft: Math.round((SESSION_TIMEOUT - (currentTime - lastLoginTime)) / 1000 / 60) + ' phút'
-    });
+    restoreAuth();
+  }, []); // Chỉ chạy một lần khi mount
 
-    if (currentTime - lastLoginTime > SESSION_TIMEOUT) {
-      console.log('Session hết hạn');
-      logout();
-    }
-  }, [userProfile, logout]);
-
-  // Xử lý auto logout khi không hoạt động
+  // Xử lý token hết hạn
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    let inactivityTimeout: NodeJS.Timeout;
-    
-    const resetInactivityTimer = () => {
-      if (inactivityTimeout) {
-        clearTimeout(inactivityTimeout);
+    const interceptor = axiosInstance.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response?.status === 401) {
+          console.log('Token hết hạn hoặc không hợp lệ');
+          logout();
+        }
+        return Promise.reject(error);
       }
-      
-      inactivityTimeout = setTimeout(() => {
-        console.log('Không có hoạt động trong 30 phút');
-        logout();
-      }, SESSION_TIMEOUT);
-    };
-
-    // Theo dõi các sự kiện người dùng
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    
-    events.forEach(event => {
-      document.addEventListener(event, resetInactivityTimer);
-    });
-
-    // Khởi tạo timer
-    resetInactivityTimer();
-
-    // Kiểm tra session định kỳ
-    const authCheckInterval = setInterval(() => {
-      checkAuthTimeout();
-    }, CHECK_INTERVAL);
+    );
 
     return () => {
-      clearTimeout(inactivityTimeout);
-      clearInterval(authCheckInterval);
-      events.forEach(event => {
-        document.removeEventListener(event, resetInactivityTimer);
-      });
+      axiosInstance.interceptors.response.eject(interceptor);
     };
-  }, [isAuthenticated, logout, checkAuthTimeout]);
+  }, [isAuthenticated, logout]);
 
   // Log trạng thái authentication khi thay đổi
   useEffect(() => {
-    console.log('Trạng thái đăng nhập:', isAuthenticated ? 'Đã đăng nhập' : 'Chưa đăng nhập');
+    if (isAuthenticated) {
+      console.log('Đã đăng nhập:', {
+        name: userProfile.name,
+        email: userProfile.email,
+        role: userProfile.role.name
+      });
+    } else {
+      console.log('Chưa đăng nhập');
+    }
   }, [isAuthenticated, userProfile]);
 
   return (
     <AuthContext.Provider value={{ 
       isAuthenticated, 
       userProfile,
-      logout, 
-      checkAuthTimeout 
+      logout
     }}>
-        {isAuthenticated && <UserProfileLogger />}
+      {isAuthenticated && <UserProfileLogger />}
       {children}
     </AuthContext.Provider>
   );

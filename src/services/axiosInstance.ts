@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { LOCAL_STORAGE_KEYS } from '@/constants/local_storage';
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -10,7 +11,7 @@ const axiosInstance = axios.create({
 // Thêm interceptor để xử lý request
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,7 +25,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
       // Có thể thêm redirect đến trang login
     }
     if (error.response?.data?.message) {
