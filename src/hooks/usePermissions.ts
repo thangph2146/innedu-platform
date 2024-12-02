@@ -22,23 +22,27 @@ export function usePermissions() {
     }
   };
 
-  const checkPermission = (permission: PermissionType) => {
-    // Kiểm tra đăng nhập trước
+  // Kiểm tra điều kiện cơ bản
+  const checkBasicConditions = () => {
     if (!isAuthenticated) {
       showToastOnce('Vui lòng đăng nhập để tiếp tục!');
       router.push('/');
       return false;
     }
 
-    // Kiểm tra userProfile và role
     if (!userProfile?.role?.name) {
       showToastOnce('Không tìm thấy thông tin người dùng!');
       router.push('/');
       return false;
     }
 
-    const hasAccess = hasPermission(userProfile.role.name, permission);
-    
+    return true;
+  };
+
+  const checkPermission = (permission: PermissionType) => {
+    if (!checkBasicConditions()) return false;
+
+    const hasAccess = hasPermission(userProfile!.role.name, permission);
     if (!hasAccess) {
       showToastOnce('Bạn không có quyền thực hiện hành động này!', '🚫');
       return false;
@@ -48,30 +52,16 @@ export function usePermissions() {
   };
 
   const canAccessAdminPanel = () => {
-    // Kiểm tra đăng nhập trước
-    if (!isAuthenticated) {
-      showToastOnce('Vui lòng đăng nhập để tiếp tục!');
+    if (!checkBasicConditions()) return false;
+
+    const isAdmin = isAdminRole(userProfile!.role.name);
+    if (!isAdmin) {
+      showToastOnce('Bạn không có quyền truy cập trang quản trị!', '🔒');
       router.push('/');
       return false;
     }
 
-    // Kiểm tra userProfile và role
-    if (!userProfile?.role?.name) {
-      showToastOnce('Không tìm thấy thông tin người dùng!');
-      router.push('/');
-      return false;
-    }
-
-    // Kiểm tra role admin
-    const isAdminUser = isAdminRole(userProfile.role.name);
-    if (!isAdminUser) {
-      showToastOnce('Bạn không có quyền truy cập trang quản trị!');
-      router.push('/');
-      return false;
-    }
-
-    // Kiểm tra permission admin
-    return checkPermission(PERMISSIONS.ACCESS_ADMIN_PANEL);
+    return true;
   };
 
   // Reset toast flag khi role hoặc auth state thay đổi
