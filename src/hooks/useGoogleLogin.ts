@@ -26,6 +26,7 @@ export const useGoogleLogin = () => {
 
   const handleCredentialResponse = useCallback(async (response: GoogleCredentialResponse) => {
     if (response.credential) {
+      const loadingToast = toast.loading('Đang đăng nhập...');
       try {
         setIsLoading(true);
         setError(null);
@@ -42,27 +43,27 @@ export const useGoogleLogin = () => {
 
         if (result.data.status === 'success') {
           const token = result.data.data.token;
-          
-          // Lưu token vào localStorage
           localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, token);
-          
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           const userProfileResponse = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
           dispatch(setUserProfile(userProfileResponse.data));
+
           toast.success(`Xin chào ${userProfileResponse.data.name}! 👋`, {
-            duration: 3000,
+            id: loadingToast,
           });   
 
           router.push('/');
         }
       } catch (err) {
         console.error('Lỗi đăng nhập:', err);
-        setError(
-          err instanceof Error 
-            ? err.message 
-            : 'Đăng nhập thất bại, vui lòng thử lại'
-        );
+        const errorMessage = err instanceof Error ? err.message : 'Đăng nhập thất bại, vui lòng thử lại';
+        setError(errorMessage);
+        
+        toast.error(errorMessage, {
+          id: loadingToast,
+          icon: '⚠️'
+        });
       } finally {
         setIsLoading(false);
       }
