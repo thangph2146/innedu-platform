@@ -1,6 +1,5 @@
 import { PermissionType, PERMISSIONS, hasPermission, isAdminRole } from "@/constants/roles";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -9,7 +8,6 @@ import { useAuth } from "@/providers/AuthProvider";
 export function usePermissions() {
   const { isAuthenticated } = useAuth();
   const userProfile = useSelector((state: RootState) => state.user.profile);
-  const router = useRouter();
   const hasShownToast = useRef(false);
 
   const showToastOnce = (message: string, icon: string = '⚠️') => {
@@ -26,13 +24,11 @@ export function usePermissions() {
   const checkBasicConditions = () => {
     if (!isAuthenticated) {
       showToastOnce('Vui lòng đăng nhập để tiếp tục!');
-      router.push('/');
       return false;
     }
 
     if (!userProfile?.role?.name) {
       showToastOnce('Không tìm thấy thông tin người dùng!');
-      router.push('/');
       return false;
     }
 
@@ -57,7 +53,6 @@ export function usePermissions() {
     const isAdmin = isAdminRole(userProfile!.role.name);
     if (!isAdmin) {
       showToastOnce('Bạn không có quyền truy cập trang quản trị!', '🔒');
-      router.push('/');
       return false;
     }
 
