@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserProfile } from '@/store/slices/userSlice';
 import { LOCAL_STORAGE_KEYS } from "@/constants/local_storage";
+import { toast } from "react-hot-toast";
 
 interface GoogleCredentialResponse {
   credential: string;
@@ -46,9 +47,12 @@ export const useGoogleLogin = () => {
           localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, token);
           
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
+          
           const userProfileResponse = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
           dispatch(setUserProfile(userProfileResponse.data));
+          toast.success(`Xin chào ${userProfileResponse.data.name}! 👋`, {
+            duration: 3000,
+          });   
 
           router.push('/');
         }

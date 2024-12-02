@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, createContext, useContext, useCallback } from 'react';
+import { useEffect, createContext, useContext, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearUserProfile, setUserProfile } from '@/store/slices/userSlice';
@@ -10,6 +10,7 @@ import axiosInstance from '@/services/axiosInstance';
 import { UserProfileLogger } from '@/components/Logger/UserProfileLogger';
 import { LOCAL_STORAGE_KEYS } from '@/constants/local_storage';
 import { API_ENDPOINT } from '@/constants/api_endpoints';
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -24,11 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const userProfile = useSelector((state: RootState) => state.user.profile);
   const isAuthenticated = !!userProfile;
+  const initializationRef = useRef(false);
 
   // Hàm xử lý đăng xuất
   const logout = useCallback(() => {
-    console.log('Đăng xuất: Xóa thông tin người dùng');
-    
     // Xóa token
     delete axiosInstance.defaults.headers.common['Authorization'];
     localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
@@ -36,13 +36,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear Redux store
     dispatch(clearUserProfile());
     dispatch(clearRolesPermission());
+
+    toast.success('Đăng xuất thành công', {
+      icon: '👋',
+    });
   }, [dispatch]);
 
   // Khôi phục trạng thái đăng nhập từ localStorage khi khởi động
   useEffect(() => {
     const restoreAuth = async () => {
+      // Kiểm tra xem đã khởi tạo chưa
+      if (initializationRef.current) return;
+      initializationRef.current = true;
+
       const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
       if (token && !isAuthenticated) {
+        const loadingToast = toast.loading('Đang khôi phục phiên đăng nhập...');
         try {
           // Set token cho axios
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -51,9 +60,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const response = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
           dispatch(setUserProfile(response.data));
           
-          console.log('Khôi phục phiên đăng nhập thành công');
+          toast.success(`Chào mừng ${response.data.name} trở lại! 👋`, {
+            id: loadingToast,
+          });
         } catch (error) {
-          console.error('Lỗi khôi phục phiên đăng nhập:', error);
+          toast.error('Phiên đăng nhập đã hết hạn', {
+            id: loadingToast,
+            icon: '⚠️',
+          });
+          
           // Nếu token không hợp lệ, xóa token và logout
           localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
           logout();
@@ -72,7 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       response => response,
       error => {
         if (error.response?.status === 401) {
-          console.log('Token hết hạn hoặc không hợp lệ');
+          toast.error('Phiên làm việc đã hết hạn', {
+            icon: '⚠️',
+            duration: 5000,
+          });
           logout();
         }
         return Promise.reject(error);
@@ -84,16 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isAuthenticated, logout]);
 
-  // Log trạng thái authentication khi thay đổi
+  // Thông báo trạng thái authentication khi thay đổi (chỉ khi đăng nhập mới)
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('Đã đăng nhập:', {
-        name: userProfile.name,
-        email: userProfile.email,
-        role: userProfile.role.name
+    if (isAuthenticated && userProfile && !initializationRef.current) {
+      toast.success(`Xin chào ${userProfile.name}! 👋`, {
+        duration: 3000,
       });
-    } else {
-      console.log('Chưa đăng nhập');
     }
   }, [isAuthenticated, userProfile]);
 
