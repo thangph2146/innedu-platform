@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.12.1",
+    "@reduxjs/toolkit": "^2.4.0",
     "axios": "^1.7.8",
     "google-auth-library": "^9.15.0",
     "next": "14.2.18",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-redux": "^9.1.2"
   },
   "devDependencies": {
     "@types/node": "^20",

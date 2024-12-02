@@ -1,13 +1,15 @@
-import { ReactNode } from "react";
+'use client';
 import GoogleOAuthProviderWrapper from "./GoogleOAuthProvider";
-
-
+import { ReactNode } from "react";
+import { ReduxProvider } from "./ReduxProvider";
 
 function Providers({ children }: { children: ReactNode }) {
     return (
-        <GoogleOAuthProviderWrapper>
-            {children}
-        </GoogleOAuthProviderWrapper>
+        <ReduxProvider>
+            <GoogleOAuthProviderWrapper>
+                {children}
+            </GoogleOAuthProviderWrapper>
+        </ReduxProvider>
     )
 }
 

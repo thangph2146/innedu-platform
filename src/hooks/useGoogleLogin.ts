@@ -1,8 +1,9 @@
 import { API_ENDPOINT } from "@/constants/api_endpoints";
-import { LOCAL_STORAGE_KEYS } from "@/constants/local_storage";
 import axiosInstance from "@/services/axiosInstance";
 import { useState, useCallback } from "react";
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { setUserProfile } from '@/store/slices/userSlice';
 
 interface GoogleCredentialResponse {
   credential: string;
@@ -19,6 +20,7 @@ export const useGoogleLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const handleCredentialResponse = useCallback(async (response: GoogleCredentialResponse) => {
     if (response.credential) {
@@ -37,13 +39,11 @@ export const useGoogleLogin = () => {
         );
 
         if (result.data.status === 'success') {
-          localStorage.setItem(
-            LOCAL_STORAGE_KEYS.ACCESS_TOKEN,
-            result.data.data.token
-          );
-
           axiosInstance.defaults.headers.common['Authorization'] = 
             `Bearer ${result.data.data.token}`;
+
+          const userProfileResponse = await axiosInstance.get(API_ENDPOINT.USER_PROFILE);
+          dispatch(setUserProfile(userProfileResponse.data));
 
           router.push('/');
         }
@@ -58,7 +58,7 @@ export const useGoogleLogin = () => {
         setIsLoading(false);
       }
     }
-  }, [router]);
+  }, [router, dispatch]);
 
   const handleGoogleLogin = async () => {
     if (typeof window === 'undefined' || !window.google) return;
